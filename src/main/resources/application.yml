@@ -1,0 +1,46 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: payment-agent
+  ai:
+    openai:
+      api-key: ${LLM_API_KEY}
+      base-url: ${LLM_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: ${LLM_MODEL:gpt-4o}
+          temperature: 0.1        # 排障场景需要确定性高的输出
+          max-tokens: 4096
+  data:
+    redis:
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+
+# Agent 自定义配置
+agent:
+  session:
+    max-history: 20             # 单会话最大保留轮次
+  tool:
+    db:
+      readonly: true            # Tool 层数据库强制只读
+      allowed-tables:           # 排障可访问的表白名单
+        - pay_order
+        - pay_item
+        - refund_record
+        - ledger_order
+        - ledger_item
+        - pay_callback_log
+        - config_merchant
+        - config_rule
+        - tx_record
+    log:
+      max-results: 100          # 单次日志查询最大返回条数
+      max-time-range-days: 7    # 最大查询时间跨度
+    channel:
+      timeout-seconds: 10       # 渠道查询超时
+
+logging:
+  level:
+    com.wenhao.pay.agent: INFO
