@@ -12,9 +12,9 @@ public interface DiagnosisAgent {
     /** 该 Agent 处理的问题类型，用于路由。 */
     IssueType supports();
 
-    /** 同步排障，返回完整排障报告。 */
-    String diagnose(String question, IssueClassification classification);
+    /** 同步排障，返回完整排障报告。sessionId 非空时启用多轮会话记忆。 */
+    String diagnose(String question, IssueClassification classification, String sessionId);
 
-    /** 流式排障，逐段返回（用于 SSE 对话）。 */
-    Flux<String> diagnoseStream(String question, IssueClassification classification);
+    /** 流式排障，逐段返回（用于 SSE 对话）。sessionId 非空时启用多轮会话记忆。 */
+    Flux<String> diagnoseStream(String question, IssueClassification classification, String sessionId);
 }

@@ -1,6 +1,7 @@
 package com.wenhao.pay.agent.tool.log;
 
 import com.wenhao.pay.agent.model.dto.InfraDtos.LogEntry;
+import com.wenhao.pay.agent.tool.ToolQueryGuard;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
@@ -9,11 +10,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 日志搜索工具。对接实际日志平台（CLS / ELK）。
- * 注意：返回条数需限制（默认 100），避免 Token 溢出。方法体待实现。
+ * 日志搜索工具。对接实际日志平台（CLS / ELK）。方法体待实现。
+ * 时间跨度已在入口校验；返回条数用 {@code guard.logMaxResults()} 限制，避免 Token 溢出。
  */
 @Component
 public class LogSearchTool {
+
+    private final ToolQueryGuard guard;
+
+    public LogSearchTool(ToolQueryGuard guard) {
+        this.guard = guard;
+    }
 
     @Tool(description = "按 trace_id 搜索全链路日志，用于定位异常发生的具体节点")
     public List<LogEntry> searchByTraceId(
@@ -27,6 +34,7 @@ public class LogSearchTool {
             @ToolParam(description = "开始时间") LocalDateTime startTime,
             @ToolParam(description = "结束时间") LocalDateTime endTime,
             @ToolParam(required = false, description = "服务名，可选") String service) {
+        guard.checkTimeRange(startTime, endTime);
         throw new UnsupportedOperationException("待实现：searchByKeyword");
     }
 
@@ -35,6 +43,7 @@ public class LogSearchTool {
             @ToolParam(description = "服务名") String service,
             @ToolParam(description = "开始时间") LocalDateTime startTime,
             @ToolParam(description = "结束时间") LocalDateTime endTime) {
+        guard.checkTimeRange(startTime, endTime);
         throw new UnsupportedOperationException("待实现：searchErrorLogs");
     }
 }

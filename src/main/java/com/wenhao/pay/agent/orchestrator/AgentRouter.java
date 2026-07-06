@@ -26,7 +26,8 @@ public class AgentRouter {
     public DiagnosisAgent route(IssueType type) {
         DiagnosisAgent agent = agentMap.get(type);
         if (agent == null) {
-            throw new IllegalArgumentException("无法识别的问题类型，建议转人工排查：" + type);
+            // UNKNOWN 已在编排层短路，走到这里说明新增了 IssueType 却没有注册对应领域 Agent
+            throw new IllegalStateException("问题类型未注册对应的领域 Agent：" + type);
         }
         return agent;
     }

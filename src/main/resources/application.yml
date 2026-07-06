@@ -13,15 +13,13 @@ spring:
           model: ${LLM_MODEL:gpt-4o}
           temperature: 0.1        # 排障场景需要确定性高的输出
           max-tokens: 4096
-  data:
-    redis:
-      host: ${REDIS_HOST:127.0.0.1}
-      port: ${REDIS_PORT:6379}
 
 # Agent 自定义配置
 agent:
   session:
-    max-history: 20             # 单会话最大保留轮次
+    max-history: 20             # 单会话记忆窗口的最大消息数（ChatMemory 滑动窗口）
+  llm:
+    timeout-seconds: 60         # LLM 单次请求响应超时（同步与流式）
   tool:
     db:
       readonly: true            # Tool 层数据库强制只读
@@ -44,3 +42,10 @@ agent:
 logging:
   level:
     com.wenhao.pay.agent: INFO
+
+# 可观测性：Spring AI 自带 ChatClient / Tool 调用指标（gen_ai.*），经 actuator 暴露
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics

@@ -6,10 +6,10 @@ import java.util.List;
 
 /**
  * Agent 配置（对应 application.yml 的 agent.*）。
- * 安全相关项（只读、表白名单、限流）由 Tool 层实现时读取使用。
+ * 安全相关项（只读、表白名单、限流）由 {@code ToolQueryGuard} 统一消费。
  */
 @ConfigurationProperties(prefix = "agent")
-public record AgentProperties(Session session, Tool tool) {
+public record AgentProperties(Session session, Tool tool, Llm llm) {
 
     public record Session(int maxHistory) {
     }
@@ -24,5 +24,9 @@ public record AgentProperties(Session session, Tool tool) {
 
         public record Channel(int timeoutSeconds) {
         }
+    }
+
+    /** LLM HTTP 客户端配置（超时等）。 */
+    public record Llm(int timeoutSeconds) {
     }
 }

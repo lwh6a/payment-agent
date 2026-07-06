@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  * 渠道查询工具。复用 BasePaymentService 的查询类方法（只查不写）。
  * 按 payMode 段路由到对应渠道适配器：210xxx 微信 / 220xxx 美富宝 / 240-250xxx 宝付 等。方法体待实现。
+ * 实现时统一使用 {@code ToolQueryGuard#channelTimeout()} 作为渠道请求超时。
  */
 @Component
 public class ChannelQueryTool {

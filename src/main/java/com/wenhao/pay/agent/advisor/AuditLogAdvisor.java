@@ -9,7 +9,8 @@ import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 import org.springframework.stereotype.Component;
 
 /**
- * 审计日志 Advisor：记录每次对话的输入问题与模型最终回答，用于排障留痕与回溯。
+ * 审计日志 Advisor：记录每次对话的输入问题、模型最终回答与 Token 用量，用于排障留痕与成本监控。
+ * 当前骨架记日志，生产可在此改为落审计表。
  * （单次 Tool 调用的细粒度日志见 {@code ToolCallLogAspect}）
  */
 @Component
@@ -25,7 +26,7 @@ public class AuditLogAdvisor implements BaseAdvisor {
 
     @Override
     public ChatClientResponse after(ChatClientResponse response, AdvisorChain chain) {
-        log.info("[审计-回答] {}", answerText(response));
+        log.info("[审计-回答] tokens(prompt/completion/total)={} 内容={}", usageText(response), answerText(response));
         return response;
     }
 
@@ -39,6 +40,14 @@ public class AuditLogAdvisor implements BaseAdvisor {
             return "";
         }
         return response.chatResponse().getResult().getOutput().getText();
+    }
+
+    private String usageText(ChatClientResponse response) {
+        if (response.chatResponse() == null || response.chatResponse().getMetadata() == null) {
+            return "-";
+        }
+        var usage = response.chatResponse().getMetadata().getUsage();
+        return usage.getPromptTokens() + "/" + usage.getCompletionTokens() + "/" + usage.getTotalTokens();
     }
 
     @Override
