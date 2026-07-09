@@ -1,0 +1,9 @@
+# .claude/skills 取证脚本的 Python 依赖
+# 安装：pip3 install --user -r .claude/skills/requirements.txt
+# jenkins-deploy / xxljob-ops / mq-inspect / diagnosis-regression 只用标准库，无需安装任何包
+
+# mysql-query
+pymysql
+
+# cls-logs
+tencentcloud-sdk-python

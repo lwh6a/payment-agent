@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: payment-agent
+  datasource:                   # DB Tool 只读查询数据源（务必使用只读账号，连接在首次查询时才建立）
+    url: ${DB_URL:jdbc:mysql://localhost:3306/pay_core?useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:readonly}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   ai:
     openai:
       api-key: ${LLM_API_KEY}
@@ -36,8 +41,29 @@ agent:
     log:
       max-results: 100          # 单次日志查询最大返回条数
       max-time-range-days: 7    # 最大查询时间跨度
+      cls:                      # 腾讯云 CLS 日志服务（不配置则日志工具查询时提示未接入）
+        secret-id: ${CLS_SECRET_ID:}
+        secret-key: ${CLS_SECRET_KEY:}
+        region: ${CLS_REGION:ap-guangzhou}
+        topic-id: ${CLS_TOPIC_ID:}
     channel:
       timeout-seconds: 10       # 渠道查询超时
+    mq:
+      name-server: ${MQ_NAME_SERVER:localhost:9876}   # RocketMQ NameServer
+    xxljob:                     # XXL-JOB 控制台（只读查询任务与执行日志）
+      admin-url: ${XXLJOB_ADMIN_URL:}
+      username: ${XXLJOB_USERNAME:}
+      password: ${XXLJOB_PASSWORD:}
+    jenkins:                    # Jenkins（只读查询发版记录）
+      url: ${JENKINS_URL:}
+      username: ${JENKINS_USERNAME:}
+      api-token: ${JENKINS_API_TOKEN:}
+      job-path: ${JENKINS_JOB_PATH:}
+    nacos:                      # Nacos 配置中心（只读查询配置内容）
+      server-addr: ${NACOS_SERVER_ADDR:}
+      namespace: ${NACOS_NAMESPACE:}
+      username: ${NACOS_USERNAME:}
+      password: ${NACOS_PASSWORD:}
 
 logging:
   level:

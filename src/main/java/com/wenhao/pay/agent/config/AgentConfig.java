@@ -8,8 +8,11 @@ import com.wenhao.pay.agent.tool.db.LedgerQueryTool;
 import com.wenhao.pay.agent.tool.db.PayOrderQueryTool;
 import com.wenhao.pay.agent.tool.db.RefundQueryTool;
 import com.wenhao.pay.agent.tool.db.TxRecordQueryTool;
+import com.wenhao.pay.agent.tool.deploy.DeployRecordTool;
+import com.wenhao.pay.agent.tool.job.XxlJobQueryTool;
 import com.wenhao.pay.agent.tool.log.LogSearchTool;
 import com.wenhao.pay.agent.tool.mq.RocketMQStatusTool;
+import com.wenhao.pay.agent.tool.nacos.NacosConfigQueryTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -26,6 +29,9 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Agent 装配中心：为编排 Agent 和 4 个领域 Agent 各自构建一个 ChatClient。
@@ -38,6 +44,19 @@ import java.time.Duration;
 @Configuration
 @EnableConfigurationProperties(AgentProperties.class)
 public class AgentConfig {
+
+    /** 基础设施排查工具（定时任务 / 发版记录 / Nacos 配置），变更维度对所有领域 Agent 通用。 */
+    private final XxlJobQueryTool xxlJobQueryTool;
+    private final DeployRecordTool deployRecordTool;
+    private final NacosConfigQueryTool nacosConfigQueryTool;
+
+    public AgentConfig(XxlJobQueryTool xxlJobQueryTool,
+                       DeployRecordTool deployRecordTool,
+                       NacosConfigQueryTool nacosConfigQueryTool) {
+        this.xxlJobQueryTool = xxlJobQueryTool;
+        this.deployRecordTool = deployRecordTool;
+        this.nacosConfigQueryTool = nacosConfigQueryTool;
+    }
 
     @Bean("orchestratorClient")
     public ChatClient orchestratorClient(ChatClient.Builder builder,
@@ -93,12 +112,16 @@ public class AgentConfig {
                 txRecordQueryTool, payOrderQueryTool, channelQueryTool, logSearchTool);
     }
 
-    /** 领域 Agent 通用装配：SOP Prompt 末尾拼接公共领域元数据与通用规则。 */
+    /** 领域 Agent 通用装配：SOP Prompt 末尾拼接公共领域元数据与通用规则；工具集追加通用的基础设施排查工具。 */
     private ChatClient domainAgentClient(ChatClient.Builder builder, String sopPrompt,
                                          AuditLogAdvisor audit, Object... tools) {
+        List<Object> allTools = new ArrayList<>(Arrays.asList(tools));
+        allTools.add(xxlJobQueryTool);
+        allTools.add(deployRecordTool);
+        allTools.add(nacosConfigQueryTool);
         return builder
                 .defaultSystem(sopPrompt + "\n" + SystemPrompts.DOMAIN_CONTEXT)
-                .defaultTools(tools)
+                .defaultTools(allTools.toArray())
                 .defaultAdvisors(audit)
                 .build();
     }

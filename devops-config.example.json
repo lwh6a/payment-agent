@@ -1,0 +1,34 @@
+{
+  "mysql": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "user": "readonly",
+    "password": "<只读账号密码，找 DBA 申请专用 readonly 账号>",
+    "databases": ["pay_core"]
+  },
+  "cls": {
+    "secretId": "<腾讯云 SecretId>",
+    "secretKey": "<腾讯云 SecretKey>",
+    "region": "ap-guangzhou",
+    "sitTopicId": "<SIT 环境日志主题 ID>",
+    "prodTopicId": "<PROD 环境日志主题 ID，可选>",
+    "logField": "message",
+    "appName": "payment-agent"
+  },
+  "rocketmq": {
+    "consoleUrl": "http://127.0.0.1:8081",
+    "username": "",
+    "password": ""
+  },
+  "xxljob": {
+    "adminUrl": "http://127.0.0.1:8082/xxl-job-admin",
+    "username": "admin",
+    "password": "<密码>"
+  },
+  "jenkins": {
+    "url": "http://127.0.0.1:8083",
+    "username": "<用户名>",
+    "apiToken": "<API Token>",
+    "jobPath": "<job 路径，如 payment-agent 或 my-folder/job/payment-agent>"
+  }
+}

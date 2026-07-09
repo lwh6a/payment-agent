@@ -60,6 +60,24 @@
             <version>5.3.1</version>
         </dependency>
 
+        <!-- JDBC：DB Tool 只读查询（JdbcTemplate，白名单表见 application.yml） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 腾讯云 CLS：日志搜索 Tool -->
+        <dependency>
+            <groupId>com.tencentcloudapi</groupId>
+            <artifactId>tencentcloud-sdk-java-cls</artifactId>
+            <version>3.1.1498</version>
+        </dependency>
+
         <!-- Actuator：暴露 Spring AI 自带的 ChatClient / Tool 调用指标（gen_ai.*） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

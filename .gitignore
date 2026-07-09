@@ -3,3 +3,7 @@ target/
 .idea/
 *.iml
 .DS_Store
+
+# 本地 DevOps 连接配置（含账号密码），禁止入库，模板见 devops-config.example.json
+devops-config.json
+.claude/settings.local.json

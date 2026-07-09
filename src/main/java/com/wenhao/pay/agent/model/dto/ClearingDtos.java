@@ -20,7 +20,7 @@ public final class ClearingDtos {
     ) {
     }
 
-    public record SettlementCommission(
+    public record FeeCommission(
             String tradeNo,
             Long fee,
             Long commission,

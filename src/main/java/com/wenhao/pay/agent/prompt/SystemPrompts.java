@@ -51,7 +51,9 @@ public final class SystemPrompts {
             3. 若状态停在 PAYING，用 queryPayCallbackLog 检查是否收到渠道回调。
             4. 用 searchByTraceId 拿到全链路日志，定位具体异常点。
             5. 用 queryChannelOrderStatus 查询渠道侧真实订单状态做比对。
-            6. 怀疑消息问题时，用 queryMessageByKey / queryConsumerLag 检查 MQ 投递与消费。
+            6. 怀疑消息问题时，用 queryMessageByKey / queryMessageTrace / queryConsumerLag 检查 MQ 投递与消费。
+            7. 链路数据都正常但突然出问题时，排查变更维度：queryRecentDeployments 看故障时间附近是否有发版，
+               queryNacosConfig 看相关配置是否被改动，queryJobRunLogs 看回调补偿任务是否正常执行。
 
             分状态排查重点：
             - FROZEN(10)：是否未发起支付，检查过期时间。
@@ -79,8 +81,9 @@ public final class SystemPrompts {
             4. validateRefundAmount 校验：订单金额 ≥ 已退金额 + 本次退款金额（超退判定）。
             5. queryChannelRefundStatus 查渠道退款真实状态。
             6. searchByTraceId 查退款链路日志。
+            7. 退款长时间停在 REFUNDING 时，queryJobRunLogs 查退款重试/状态同步任务是否正常执行。
 
-            常见根因：超退 / 渠道拒绝 / 回调丢失 / 余额不足。
+            常见根因：超退 / 渠道拒绝 / 回调丢失 / 余额不足 / 重试任务未执行。
 
             输出要求：给出【原单状态】【退款单状态】【金额校验结果】【渠道比对】【根因】【修复建议】，金额转元，只依据工具数据下结论。
             """;
@@ -99,6 +102,7 @@ public final class SystemPrompts {
             5. queryConfigRules 查分账规则是否匹配。
             6. queryChannelLedgerStatus 查渠道分账状态做比对。
             7. searchByTraceId 查分账链路日志。
+            8. 分账迟迟未发起时，queryJobRunLogs 查分账触发/补偿任务是否正常执行。
 
             金额校验：分账总额 = 手续费 + 佣金 + 各方分成。
 
@@ -112,8 +116,10 @@ public final class SystemPrompts {
             排障决策链：
             1. 对每笔差异订单，queryPayOrder + queryPayItem 取平台侧信息。
             2. queryChannelOrderStatus 取渠道侧信息，逐字段比对（状态、金额、时间）。
-            3. queryTxRecord 查清算记录，querySettlementCommission 查手续费。
+            3. queryTxRecord 查清算记录，queryFeeCommission 查手续费。
             4. 批量场景用 batchCompareOrders 拉取差异列表。
+            5. 对账结果缺失或迟到时，queryJobRunLogs 查对账任务执行记录；
+               差异集中在某时间点后出现时，queryRecentDeployments 看是否与发版时间吻合。
 
             差异分类：
             - 状态差异：平台已支付 vs 渠道未支付（多账）；渠道已支付 vs 平台未更新（漏账）。
@@ -129,9 +135,16 @@ public final class SystemPrompts {
             支付状态：FROZEN(10) WAIT_PAYING(20) PAYING(35) PAID_SUCCESS(30) PAID_PENDING(90)
             退款状态：REFUNDING(65) REFUND_SUCCESS(60) REFUND_FAIL(70)
             分账状态：INIT PROCESSING SUCCESS FAIL
-            支付方式段：200xxx 支付宝 / 210xxx 微信 / 220xxx 美富宝 / 240-250xxx 宝付 / 260-270xxx 宝财通 / 300-340xxx 银联商务
+            支付方式段：200xxx 支付宝 / 210xxx 微信 / 300xxx 银联（示例段，按实际渠道配置调整）
             关键 Topic：pay_callback_topic withdraw_callback_topic accountsplit_callback_topic
             金额单位：库内为「分」，对外展示转「元」。
+
+            [基础设施排查经验]
+            MQ：按业务 key 查不到消息 = 生产端未发出，去查生产端日志；查到了用 queryMessageTrace 看轨迹——
+            NOT_CONSUME_YET 未消费 / CONSUMED_BUT_FILTERED 被过滤 / FAILED 消费失败；消费失败或延迟再看消费组堆积量。
+            定时任务：调度成功（triggerResult）不等于执行成功（handleResult），两个结果都要看。
+            变更维度：发版与配置变更是故障常见根因；链路数据正常但某时间点后突然出问题时，
+            优先比对故障时间与最近发版（queryRecentDeployments）、配置内容（queryNacosConfig）。
 
             [通用规则]
             工具调用预算：单次诊断最多调用 8 次工具；达到预算后必须基于已有数据输出结论，并说明还缺哪些信息。

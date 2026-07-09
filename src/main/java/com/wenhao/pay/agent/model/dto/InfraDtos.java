@@ -45,4 +45,37 @@ public final class InfraDtos {
             Long lag
     ) {
     }
+
+    public record JobInfo(
+            Integer id,
+            String jobDesc,
+            String executorHandler,
+            String cron,
+            Boolean enabled
+    ) {
+    }
+
+    public record JobRunLog(
+            Long logId,
+            String triggerTime,
+            String triggerResult,
+            String handleResult,
+            String handleTime
+    ) {
+    }
+
+    public record DeployRecord(
+            Integer buildNumber,
+            String result,
+            String buildTime,
+            Long durationSeconds
+    ) {
+    }
+
+    public record NacosConfig(
+            String dataId,
+            String group,
+            String content
+    ) {
+    }
 }
